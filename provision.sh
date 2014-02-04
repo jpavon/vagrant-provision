@@ -2,6 +2,7 @@
 
 # Config
 ENVIRONMENT="development" # "development" or "production"
+WEBSERVER="nginx" # "apache" or "nginx"
 SERVERNAME="192.168.33.10.xip.io"
 DOCUMENTROOT="/vagrant"
 MYSQLPASSWORD="123456"
@@ -64,7 +65,7 @@ sudo service php5-fpm restart
 
 
 
-
+if [ $WEBSERVER == "apache" ]; then
 
 echo ">>> Installing Apache Server"
 
@@ -118,7 +119,6 @@ cd /etc/apache2/sites-available/ && a2ensite ${SERVERNAME}.conf
 service apache2 reload
 
 
-
 # PHP Config for Apache
 cat > /etc/apache2/conf-available/php5-fpm.conf << EOF
 <IfModule mod_fastcgi.c>
@@ -136,6 +136,98 @@ EOF
 sudo a2enconf php5-fpm
 
 sudo service apache2 restart
+
+fi # [ $WEBSERVER == "apache" ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if [ $WEBSERVER == "nginx" ]; then
+
+echo ">>> Installing Nginx"
+
+# Add repo for latest stable nginx
+sudo add-apt-repository -y ppa:nginx/stable
+
+# Update Again
+sudo apt-get update
+
+# Install the Rest
+sudo apt-get install -y nginx
+
+echo ">>> Configuring Nginx"
+
+# Configure Nginx
+cat > /etc/nginx/sites-available/$SERVERNAME << EOF
+server {
+    root $DOCUMENTROOT;
+    index index.html index.htm index.php;
+
+    # Make site accessible from http://set-ip-address.xip.io
+    server_name $SERVERNAME;
+
+    access_log /var/log/nginx/vagrant.com-access.log;
+    error_log  /var/log/nginx/vagrant.com-error.log error;
+
+    charset utf-8;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location = /favicon.ico { log_not_found off; access_log off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    # pass the PHP scripts to php5-fpm
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        # With php5-fpm:
+        fastcgi_pass unix:/var/run/php5-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param LARA_ENV local; # Environment variable for Laravel
+        include fastcgi_params;
+    }
+
+    # Deny .htaccess file access
+    location ~ /\.ht {
+        deny all;
+    }
+}
+EOF
+
+# Enabling virtual hosts
+ln -s /etc/nginx/sites-available/$SERVERNAME /etc/nginx/sites-enabled/$SERVERNAME
+
+# Remove default
+rm /etc/nginx/sites-enabled/default
+
+
+# PHP Config for Nginx
+sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php5/fpm/php.ini
+
+sudo service php5-fpm restart
+sudo service nginx restart
+
+fi # [ $WEBSERVER == "nginx" ]
+
+
+
+
+
+
+
 
 
 

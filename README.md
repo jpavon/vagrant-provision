@@ -3,8 +3,8 @@
 Includes:
 
     - PHP
+    - Apache or Nginx
     - MySQL
-    - Apache
     - Memcached
     - Composer
 
