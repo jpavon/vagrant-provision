@@ -298,7 +298,7 @@ sudo mv composer.phar /usr/local/bin/composer
 
 
 
-
+if [ $ENVIRONMENT == "production" ]; then
 
 echo ">>> Installing Git repository"
 
@@ -323,3 +323,5 @@ composer install
 EOF
 
 chmod +x post-receive
+
+fi # [ $ENVIRONMENT == "production" ]
