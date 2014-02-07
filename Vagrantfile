@@ -21,7 +21,7 @@ Vagrant.configure("2") do |config|
   # allocated to the VM. Default is 384MB
   config.vm.provider :virtualbox do |vb|
 
-    vb.customize ["modifyvm", :id, "--memory", "384"]
+    vb.customize ["modifyvm", :id, "--memory", "1024"]
 
   end
 

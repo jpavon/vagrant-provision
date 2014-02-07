@@ -133,6 +133,7 @@ cat > /etc/apache2/conf-available/php5-fpm.conf << EOF
         </Directory>
 </IfModule>
 EOF
+
 sudo a2enconf php5-fpm
 
 sudo service apache2 restart
