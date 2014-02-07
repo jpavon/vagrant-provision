@@ -325,3 +325,30 @@ EOF
 chmod +x post-receive
 
 fi # [ $ENVIRONMENT == "production" ]
+
+
+
+
+
+
+
+
+
+
+
+if [ $ENVIRONMENT == "development" ]; then
+
+echo ">>> Installing Oh-My-Zsh"
+
+# https://gist.github.com/tsabat/1498393
+
+# Install zsh
+sudo apt-get install -y zsh
+
+# Install oh-my-zsh
+sudo su - vagrant -c 'wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh'
+
+# Change vagrant user's default shell
+chsh vagrant -s $(which zsh);
+
+fi # [ $ENVIRONMENT == "development" ]
