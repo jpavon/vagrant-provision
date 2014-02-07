@@ -4,8 +4,8 @@
 ENVIRONMENT="development" # "development" or "production"
 WEBSERVER="nginx" # "apache" or "nginx"
 SERVERNAME="192.168.33.10.xip.io"
-DOCUMENTPUBLICROOT="/vagrant"
-DOCUMENTROOT="/vagrant"
+DOCUMENTPUBLICROOT="/vagrant/test/public"
+DOCUMENTROOT="/vagrant/test"
 MYSQLPASSWORD="123456"
 
 
@@ -303,7 +303,6 @@ sudo mv composer.phar /usr/local/bin/composer
 echo ">>> Installing Git repository"
 
 # Create repo
-
 cd /var
 mkdir repo && cd repo
 mkdir ${SERVERNAME}.git && cd ${SERVERNAME}.git
@@ -311,7 +310,6 @@ git init --bare
 
 
 # Hooks
-
 cd hooks
 
 cat > /var/repo/${SERVERNAME}.git/hooks/post-receive << EOF
@@ -319,8 +317,7 @@ cat > /var/repo/${SERVERNAME}.git/hooks/post-receive << EOF
 git --work-tree=${DOCUMENTROOT} --git-dir=/var/repo/${SERVERNAME}.git checkout -f
 
 # Composer install from composer.lock
-cd ${DOCUMENTROOT} # public dir
-cd ..
+cd ${DOCUMENTROOT}
 composer install
 
 EOF

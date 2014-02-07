@@ -7,5 +7,6 @@ Includes:
     - MySQL
     - Memcached
     - Composer
+    - Git repository in [ssh://user@ip/var/repo/servername.git]
 
 Credits: [https://github.com/fideloper/Vaprobash/](https://github.com/fideloper/Vaprobash/)
