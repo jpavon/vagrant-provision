@@ -4,6 +4,7 @@
 ENVIRONMENT="development" # "development" or "production"
 WEBSERVER="nginx" # "apache" or "nginx"
 SERVERNAME="192.168.33.10.xip.io"
+DOCUMENTPUBLICROOT="/vagrant"
 DOCUMENTROOT="/vagrant"
 MYSQLPASSWORD="123456"
 
@@ -89,9 +90,9 @@ cat > /etc/apache2/sites-available/${SERVERNAME}.conf << EOF
     ServerAdmin webmaster@localhost
     ServerName $SERVERNAME
 
-    DocumentRoot $DOCUMENTROOT
+    DocumentRoot $DOCUMENTPUBLICROOT
 
-    <Directory $DOCUMENTROOT>
+    <Directory $DOCUMENTPUBLICROOT>
         Options -Indexes +FollowSymLinks +MultiViews
         AllowOverride All
         Order allow,deny
@@ -111,8 +112,8 @@ cat > /etc/apache2/sites-available/${SERVERNAME}.conf << EOF
 </VirtualHost>
 EOF
 
-if [ ! -d $DOCUMENTROOT ]; then
-    mkdir -p $DOCUMENTROOT
+if [ ! -d $DOCUMENTPUBLICROOT ]; then
+    mkdir -p $DOCUMENTPUBLICROOT
 fi
 
 cd /etc/apache2/sites-available/ && a2ensite ${SERVERNAME}.conf
@@ -171,7 +172,7 @@ echo ">>> Configuring Nginx"
 # Configure Nginx
 cat > /etc/nginx/sites-available/$SERVERNAME << EOF
 server {
-    root $DOCUMENTROOT;
+    root $DOCUMENTPUBLICROOT;
     index index.html index.htm index.php;
 
     # Make site accessible from http://set-ip-address.xip.io
@@ -207,6 +208,11 @@ server {
     }
 }
 EOF
+
+# Create directory
+if [ ! -d $DOCUMENTPUBLICROOT ]; then
+    mkdir -p $DOCUMENTPUBLICROOT
+fi
 
 # Enabling virtual hosts
 ln -s /etc/nginx/sites-available/$SERVERNAME /etc/nginx/sites-enabled/$SERVERNAME
@@ -283,3 +289,40 @@ echo ">>> Installing Composer"
 
 curl -sS https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
+
+
+
+
+
+
+
+
+
+
+
+echo ">>> Installing Git repository"
+
+# Create repo
+
+cd /var
+mkdir repo && cd repo
+mkdir ${SERVERNAME}.git && cd ${SERVERNAME}.git
+git init --bare
+
+
+# Hooks
+
+cd hooks
+
+cat > /var/repo/${SERVERNAME}.git/hooks/post-receive << EOF
+#!/bin/sh
+git --work-tree=${DOCUMENTROOT} --git-dir=/var/repo/${SERVERNAME}.git checkout -f
+
+# Composer install from composer.lock
+cd ${DOCUMENTROOT} # public dir
+cd ..
+composer install
+
+EOF
+
+chmod +x post-receive
