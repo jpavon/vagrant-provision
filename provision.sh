@@ -38,7 +38,7 @@ sudo add-apt-repository -y ppa:ondrej/php5
 sudo apt-get update
 
 # Install PHP
-sudo apt-get install -y php5-cli php5-fpm php5-mysql php5-pgsql php5-sqlite php5-curl php5-gd php5-gmp php5-mcrypt php5-memcached php5-imagick
+sudo apt-get install -y php5-cli php5-fpm php5-mysql php5-pgsql php5-sqlite php5-curl php5-gd php5-gmp php5-mcrypt php5-xdebug php5-memcached php5-imagick php5-intl
 
 if [ $ENVIRONMENT == "development" ]; then
     # PHP Error Reporting Config
@@ -123,15 +123,15 @@ service apache2 reload
 # PHP Config for Apache
 cat > /etc/apache2/conf-available/php5-fpm.conf << EOF
 <IfModule mod_fastcgi.c>
-        AddHandler php5-fcgi .php
-        Action php5-fcgi /php5-fcgi
-        Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
-        FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -socket /var/run/php5-fpm.sock -pass-header Authorization
-        <Directory /usr/lib/cgi-bin>
-                Options ExecCGI FollowSymLinks
-                SetHandler fastcgi-script
-                Require all granted
-        </Directory>
+    AddHandler php5-fcgi .php
+    Action php5-fcgi /php5-fcgi
+    Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
+    FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -socket /var/run/php5-fpm.sock -pass-header Authorization
+    <Directory /usr/lib/cgi-bin>
+        Options ExecCGI FollowSymLinks
+        SetHandler fastcgi-script
+        Require all granted
+    </Directory>
 </IfModule>
 EOF
 
@@ -193,7 +193,7 @@ server {
     error_page 404 /index.php;
 
     # pass the PHP scripts to php5-fpm
-    location ~ \.php$ {
+    location ~ ^/(index|app|app_dev|config)\.php(/|$) {
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
         # With php5-fpm:
         fastcgi_pass unix:/var/run/php5-fpm.sock;
@@ -346,7 +346,7 @@ echo ">>> Installing Oh-My-Zsh"
 sudo apt-get install -y zsh
 
 # Install oh-my-zsh
-sudo su - vagrant -c 'wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh'
+sudo su - vagrant -c 'wget --no-check-certificate http://install.ohmyz.sh -O - | sh'
 
 # Change vagrant user's default shell
 chsh vagrant -s $(which zsh);
