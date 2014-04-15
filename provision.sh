@@ -20,8 +20,7 @@ echo ">>> Installing Base Packages"
 sudo apt-get update
 
 # Install base packages
-sudo apt-get install -y git-core ack-grep vim tmux curl wget build-essential python-software-properties
-
+sudo apt-get install -y unzip git-core ack-grep vim tmux curl wget build-essential python-software-properties
 
 
 
@@ -40,20 +39,21 @@ sudo apt-get update
 # Install PHP
 sudo apt-get install -y php5-cli php5-fpm php5-mysql php5-pgsql php5-sqlite php5-curl php5-gd php5-gmp php5-mcrypt php5-xdebug php5-memcached php5-imagick php5-intl
 
+
+# PHP Error Reporting Config
+sed -i "s/log_errors = .*/log_errors = On/" /etc/php5/fpm/php.ini
+sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php5/fpm/php.ini
+
 if [ $ENVIRONMENT == "development" ]; then
-    # PHP Error Reporting Config
-    sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php5/fpm/php.ini
     sed -i "s/display_errors = .*/display_errors = On/" /etc/php5/fpm/php.ini
     sed -i "s/display_startup_errors = .*/display_startup_errors = On/" /etc/php5/fpm/php.ini
-    sed -i "s/log_errors = .*/log_errors = On/" /etc/php5/fpm/php.ini
+    sed -i "s/html_errors = .*/html_errors = On/" /etc/php5/fpm/php.ini
 fi
 
 if [ $ENVIRONMENT == "production" ]; then
-    # PHP Error Reporting Config
-    sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php5/fpm/php.ini
     sed -i "s/display_errors = .*/display_errors = Off/" /etc/php5/fpm/php.ini
     sed -i "s/display_startup_errors = .*/display_startup_errors = Off/" /etc/php5/fpm/php.ini
-    sed -i "s/log_errors = .*/log_errors = On/" /etc/php5/fpm/php.ini
+    sed -i "s/html_errors = .*/html_errors = Off/" /etc/php5/fpm/php.ini
 fi
 
 sudo service php5-fpm restart
@@ -260,6 +260,66 @@ sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again p
 
 # Install MySQL Server
 sudo apt-get install -y mysql-server-5.6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if [ $ENVIRONMENT == "development" ]; then
+
+echo ">>> Installing Mailcatcher"
+
+# Test if Apache is installed
+apache2 -v > /dev/null 2>&1
+APACHE_IS_INSTALLED=$?
+
+# Installing dependency
+sudo apt-get install -y libsqlite3-dev
+
+
+# Gem check
+if ! gem -v > /dev/null 2>&1; then sudo aptitude install -y libgemplugin-ruby; fi
+
+# Install
+gem install --no-rdoc --no-ri mailcatcher
+
+
+# Make it start on boot
+sudo echo "@reboot $(which mailcatcher) --ip=0.0.0.0" >> /etc/crontab
+sudo update-rc.d cron defaults
+
+
+# Make php use it to send mail
+sudo echo "sendmail_path = /usr/bin/env $(which catchmail)" >> /etc/php5/mods-available/mailcatcher.ini
+sudo php5enmod mailcatcher
+sudo service php5-fpm restart
+
+
+if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
+    sudo service apache2 restart
+fi
+
+# Start it now
+/usr/bin/env $(which mailcatcher) --ip=0.0.0.0
+
+# Add aliases
+if [[ -f "/home/vagrant/.zshrc" ]]; then
+    sudo echo "alias mailcatcher=\"mailcatcher --ip=0.0.0.0\"" >> /home/vagrant/.zshrc
+    . /home/vagrant/.zshrc
+fi
+
+fi # [ $ENVIRONMENT == "development" ]
+
+
 
 
 
