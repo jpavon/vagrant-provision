@@ -396,8 +396,6 @@ fi # [ $ENVIRONMENT == "production" ]
 
 
 
-if [ $ENVIRONMENT == "development" ]; then
-
 echo ">>> Installing Oh-My-Zsh"
 
 # https://gist.github.com/tsabat/1498393
@@ -406,9 +404,7 @@ echo ">>> Installing Oh-My-Zsh"
 sudo apt-get install -y zsh
 
 # Install oh-my-zsh
-sudo su - vagrant -c 'wget --no-check-certificate http://install.ohmyz.sh -O - | sh'
+sudo su - $USER -c 'wget --no-check-certificate http://install.ohmyz.sh -O - | sh'
 
-# Change vagrant user's default shell
-chsh vagrant -s $(which zsh);
-
-fi # [ $ENVIRONMENT == "development" ]
+# Change $USER user's default shell
+sudo chsh $USER -s $(which zsh);
