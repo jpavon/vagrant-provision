@@ -406,5 +406,8 @@ sudo apt-get install -y zsh
 # Install oh-my-zsh
 sudo su - $USER -c 'wget --no-check-certificate http://install.ohmyz.sh -O - | sh'
 
+# Add /sbin to PATH
+sudo sed -i 's=:/bin:=:/bin:/sbin:/usr/sbin:=' /home/vagrant/.zshrc
+
 # Change $USER user's default shell
 sudo chsh $USER -s $(which zsh);
