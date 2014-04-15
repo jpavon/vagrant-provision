@@ -7,6 +7,10 @@ SERVERNAME="192.168.33.10.xip.io"
 DOCUMENTPUBLICROOT="/vagrant/test/public"
 DOCUMENTROOT="/vagrant/test"
 MYSQLPASSWORD="123456"
+USER="vagrant"
+
+
+
 
 
 
@@ -21,6 +25,8 @@ sudo apt-get update
 
 # Install base packages
 sudo apt-get install -y unzip git-core ack-grep vim tmux curl wget build-essential python-software-properties
+
+
 
 
 
@@ -178,8 +184,8 @@ server {
     # Make site accessible from http://set-ip-address.xip.io
     server_name $SERVERNAME;
 
-    access_log /var/log/nginx/vagrant.com-access.log;
-    error_log  /var/log/nginx/vagrant.com-error.log error;
+    access_log /var/log/nginx/${SERVERNAME}-access.log;
+    error_log  /var/log/nginx/${SERVERNAME}-error.log error;
 
     charset utf-8;
 
@@ -247,9 +253,6 @@ fi # [ $WEBSERVER == "nginx" ]
 
 echo ">>> Installing MySQL Server"
 
-# Add repo for MySQL 5.6
-sudo add-apt-repository -y ppa:ondrej/mysql-5.6
-
 # Update Again
 sudo apt-get update
 
@@ -259,7 +262,7 @@ sudo debconf-set-selections <<< "mysql-server mysql-server/root_password passwor
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $MYSQLPASSWORD"
 
 # Install MySQL Server
-sudo apt-get install -y mysql-server-5.6
+sudo apt-get install -y mysql-server
 
 
 
@@ -275,50 +278,6 @@ sudo apt-get install -y mysql-server-5.6
 
 
 if [ $ENVIRONMENT == "development" ]; then
-
-echo ">>> Installing Mailcatcher"
-
-# Test if Apache is installed
-apache2 -v > /dev/null 2>&1
-APACHE_IS_INSTALLED=$?
-
-# Installing dependency
-sudo apt-get install -y libsqlite3-dev
-
-
-# Gem check
-if ! gem -v > /dev/null 2>&1; then sudo aptitude install -y libgemplugin-ruby; fi
-
-# Install
-gem install --no-rdoc --no-ri mailcatcher
-
-
-# Make it start on boot
-sudo echo "@reboot $(which mailcatcher) --ip=0.0.0.0" >> /etc/crontab
-sudo update-rc.d cron defaults
-
-
-# Make php use it to send mail
-sudo echo "sendmail_path = /usr/bin/env $(which catchmail)" >> /etc/php5/mods-available/mailcatcher.ini
-sudo php5enmod mailcatcher
-sudo service php5-fpm restart
-
-
-if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
-    sudo service apache2 restart
-fi
-
-# Start it now
-/usr/bin/env $(which mailcatcher) --ip=0.0.0.0
-
-# Add aliases
-if [[ -f "/home/vagrant/.zshrc" ]]; then
-    sudo echo "alias mailcatcher=\"mailcatcher --ip=0.0.0.0\"" >> /home/vagrant/.zshrc
-    . /home/vagrant/.zshrc
-fi
-
-fi # [ $ENVIRONMENT == "development" ]
-
 
 
 
@@ -407,7 +366,62 @@ sudo apt-get install -y zsh
 sudo su - $USER -c 'wget --no-check-certificate http://install.ohmyz.sh -O - | sh'
 
 # Add /sbin to PATH
-sudo sed -i 's=:/bin:=:/bin:/sbin:/usr/sbin:=' /home/vagrant/.zshrc
+sudo sed -i 's=:/bin:=:/bin:/sbin:/usr/sbin:=' /home/${USER}/.zshrc
 
 # Change $USER user's default shell
 sudo chsh $USER -s $(which zsh);
+
+
+
+
+
+
+
+
+
+
+
+
+
+echo ">>> Installing Mailcatcher"
+
+# Test if Apache is installed
+apache2 -v > /dev/null 2>&1
+APACHE_IS_INSTALLED=$?
+
+# Installing dependency
+sudo apt-get install -y libsqlite3-dev
+
+
+# Gem check
+if ! gem -v > /dev/null 2>&1; then sudo aptitude install -y libgemplugin-ruby; fi
+
+# Install
+gem install --no-rdoc --no-ri mailcatcher
+
+
+# Make it start on boot
+sudo echo "@reboot $(which mailcatcher) --ip=0.0.0.0" >> /etc/crontab
+sudo update-rc.d cron defaults
+
+
+# Make php use it to send mail
+sudo echo "sendmail_path = /usr/bin/env $(which catchmail)" >> /etc/php5/mods-available/mailcatcher.ini
+sudo php5enmod mailcatcher
+sudo service php5-fpm restart
+
+
+if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
+    sudo service apache2 restart
+fi
+
+# Start it now
+/usr/bin/env $(which mailcatcher) --ip=0.0.0.0
+
+# Add aliases
+if [[ -f "/home/${USER}/.zshrc" ]]; then
+    sudo echo "alias mailcatcher=\"mailcatcher --ip=0.0.0.0\"" >> /home/${USER}/.zshrc
+    . /home/${USER}/.zshrc
+fi
+
+fi # [ $ENVIRONMENT == "development" ]
