@@ -4,8 +4,8 @@
 ENVIRONMENT="development" # "development" or "production"
 WEBSERVER="nginx" # "apache" or "nginx"
 SERVERNAME="192.168.33.10.xip.io"
-DOCUMENTPUBLICROOT="/vagrant/test/public"
 DOCUMENTROOT="/vagrant/test"
+DOCUMENTPUBLICROOT="${DOCUMENTROOT}/public"
 MYSQLPASSWORD="123456"
 USER="vagrant"
 
