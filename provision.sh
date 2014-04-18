@@ -47,19 +47,19 @@ sudo apt-get install -y php5-cli php5-fpm php5-mysql php5-pgsql php5-sqlite php5
 
 
 # PHP Error Reporting Config
-sed -i "s/log_errors = .*/log_errors = On/" /etc/php5/fpm/php.ini
-sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php5/fpm/php.ini
+sudo sed -i "s/log_errors = .*/log_errors = On/" /etc/php5/fpm/php.ini
+sudo sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php5/fpm/php.ini
 
 if [ $ENVIRONMENT == "development" ]; then
-    sed -i "s/display_errors = .*/display_errors = On/" /etc/php5/fpm/php.ini
-    sed -i "s/display_startup_errors = .*/display_startup_errors = On/" /etc/php5/fpm/php.ini
-    sed -i "s/html_errors = .*/html_errors = On/" /etc/php5/fpm/php.ini
+    sudo sed -i "s/display_errors = .*/display_errors = On/" /etc/php5/fpm/php.ini
+    sudo sed -i "s/display_startup_errors = .*/display_startup_errors = On/" /etc/php5/fpm/php.ini
+    sudo sed -i "s/html_errors = .*/html_errors = On/" /etc/php5/fpm/php.ini
 fi
 
 if [ $ENVIRONMENT == "production" ]; then
-    sed -i "s/display_errors = .*/display_errors = Off/" /etc/php5/fpm/php.ini
-    sed -i "s/display_startup_errors = .*/display_startup_errors = Off/" /etc/php5/fpm/php.ini
-    sed -i "s/html_errors = .*/html_errors = Off/" /etc/php5/fpm/php.ini
+    sudo sed -i "s/display_errors = .*/display_errors = Off/" /etc/php5/fpm/php.ini
+    sudo sed -i "s/display_startup_errors = .*/display_startup_errors = Off/" /etc/php5/fpm/php.ini
+    sudo sed -i "s/html_errors = .*/html_errors = Off/" /etc/php5/fpm/php.ini
 fi
 
 sudo service php5-fpm restart
@@ -119,7 +119,7 @@ cat > /etc/apache2/sites-available/${SERVERNAME}.conf << EOF
 EOF
 
 if [ ! -d $DOCUMENTPUBLICROOT ]; then
-    mkdir -p $DOCUMENTPUBLICROOT
+    sudo mkdir -p $DOCUMENTPUBLICROOT
 fi
 
 cd /etc/apache2/sites-available/ && a2ensite ${SERVERNAME}.conf
@@ -176,7 +176,7 @@ sudo apt-get install -y nginx
 echo ">>> Configuring Nginx"
 
 # Configure Nginx
-cat > /etc/nginx/sites-available/$SERVERNAME << EOF
+sudo bash -c "cat > /etc/nginx/sites-available/$SERVERNAME" << EOF
 
 # https://gist.github.com/plentz/6737338
 server_tokens off;
@@ -232,18 +232,18 @@ EOF
 
 # Create directory
 if [ ! -d $DOCUMENTPUBLICROOT ]; then
-    mkdir -p $DOCUMENTPUBLICROOT
+    sudo mkdir -p $DOCUMENTPUBLICROOT
 fi
 
 # Enabling virtual hosts
-ln -s /etc/nginx/sites-available/$SERVERNAME /etc/nginx/sites-enabled/$SERVERNAME
+sudo ln -s /etc/nginx/sites-available/$SERVERNAME /etc/nginx/sites-enabled/$SERVERNAME
 
 # Remove default
-rm /etc/nginx/sites-enabled/default
+sudo rm /etc/nginx/sites-enabled/default
 
 
 # PHP Config for Nginx
-sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php5/fpm/php.ini
+sudo sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php5/fpm/php.ini
 
 sudo service php5-fpm restart
 sudo service nginx restart
@@ -336,15 +336,15 @@ echo ">>> Installing Git repository"
 
 # Create repo
 cd /var
-mkdir repo && cd repo
-mkdir ${SERVERNAME}.git && cd ${SERVERNAME}.git
+sudo mkdir -p repo && cd repo
+sudo mkdir -p ${SERVERNAME}.git && cd ${SERVERNAME}.git
 git init --bare
 
 
 # Hooks
 cd hooks
 
-cat > /var/repo/${SERVERNAME}.git/hooks/post-receive << EOF
+sudo bash -c "cat > /var/repo/${SERVERNAME}.git/hooks/post-receive" << EOF
 #!/bin/sh
 git --work-tree=${DOCUMENTROOT} --git-dir=/var/repo/${SERVERNAME}.git checkout -f
 
@@ -354,7 +354,7 @@ composer install
 
 EOF
 
-chmod +x post-receive
+sudo chmod +x post-receive
 
 fi # [ $ENVIRONMENT == "production" ]
 
