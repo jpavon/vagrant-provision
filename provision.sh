@@ -177,6 +177,21 @@ echo ">>> Configuring Nginx"
 
 # Configure Nginx
 cat > /etc/nginx/sites-available/$SERVERNAME << EOF
+
+# https://gist.github.com/plentz/6737338
+server_tokens off;
+add_header X-Frame-Options SAMEORIGIN;
+add_header X-Content-Type-Options nosniff;
+add_header X-XSS-Protection "1; mode=block";
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ssl.google-analytics.com https://assets.zendesk.com https://connect.facebook.net; img-src 'self' https://ssl.google-analytics.com https://s-static.ak.facebook.com https://assets.zendesk.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://assets.zendesk.com; font-src 'self' https://themes.googleusercontent.com; frame-src https://assets.zendesk.com https://www.facebook.com https://s-static.ak.facebook.com https://tautt.zendesk.com; object-src 'none'";
+
+gzip_comp_level 5;
+gzip_http_version 1.0;
+gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+gzip_vary on;
+gzip_proxied any;
+gzip_min_length 256;
+
 server {
     root $DOCUMENTPUBLICROOT;
     index index.html index.htm index.php;
@@ -276,8 +291,6 @@ sudo apt-get install -y mysql-server
 
 
 
-
-if [ $ENVIRONMENT == "development" ]; then
 
 
 
@@ -382,6 +395,7 @@ sudo chsh $USER -s $(which zsh);
 
 
 
+if [ $ENVIRONMENT == "development" ]; then
 
 echo ">>> Installing Mailcatcher"
 
@@ -395,6 +409,10 @@ sudo apt-get install -y libsqlite3-dev
 
 # Gem check
 if ! gem -v > /dev/null 2>&1; then sudo aptitude install -y libgemplugin-ruby; fi
+
+# Install ruby
+sudo apt-get install ruby1.9.1-dev
+
 
 # Install
 gem install --no-rdoc --no-ri mailcatcher
