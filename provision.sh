@@ -227,6 +227,12 @@ server {
     location ~ /\.ht {
         deny all;
     }
+
+    location ~* \.(?:ico|css|js|gif|jpe?g|png)$ {
+        expires 30d;
+        add_header Pragma public;
+        add_header Cache-Control "public";
+    }
 }
 EOF
 
