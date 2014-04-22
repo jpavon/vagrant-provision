@@ -425,12 +425,12 @@ gem install --no-rdoc --no-ri mailcatcher
 
 
 # Make it start on boot
-sudo echo "@reboot root $(which mailcatcher) --ip=0.0.0.0" >> /etc/crontab
+sudo bash -c 'echo "@reboot root $(which mailcatcher) --ip=0.0.0.0" >> /etc/crontab'
 sudo update-rc.d cron defaults
 
 
 # Make php use it to send mail
-sudo echo "sendmail_path = /usr/bin/env $(which catchmail)" >> /etc/php5/mods-available/mailcatcher.ini
+sudo bash -c 'echo "sendmail_path = /usr/bin/env $(which catchmail)" >> /etc/php5/mods-available/mailcatcher.ini'
 sudo php5enmod mailcatcher
 sudo service php5-fpm restart
 
@@ -444,7 +444,7 @@ fi
 
 # Add aliases
 if [[ -f "/home/${USER}/.zshrc" ]]; then
-    sudo echo "alias mailcatcher=\"mailcatcher --ip=0.0.0.0\"" >> /home/${USER}/.zshrc
+    sudo bash -c 'echo "alias mailcatcher=\"mailcatcher --ip=0.0.0.0\"" >> /home/${USER}/.zshrc'
     . /home/${USER}/.zshrc
 fi
 
