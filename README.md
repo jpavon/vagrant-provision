@@ -1,4 +1,4 @@
-# Quick Vagrant Provision
+# Vagrant Provision
 
 Includes:
 
