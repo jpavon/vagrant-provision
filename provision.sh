@@ -445,7 +445,6 @@ fi
 # Add aliases
 if [[ -f "/home/${USER}/.zshrc" ]]; then
     sudo bash -c 'echo "alias mailcatcher=\"mailcatcher --ip=0.0.0.0\"" >> /home/${USER}/.zshrc'
-    . /home/${USER}/.zshrc
 fi
 
 fi # [ $ENVIRONMENT == "development" ]
