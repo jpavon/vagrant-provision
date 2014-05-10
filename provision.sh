@@ -40,10 +40,17 @@ echo ">>> Installing PHP"
 
 sudo add-apt-repository -y ppa:ondrej/php5
 
+sudo apt-key update
 sudo apt-get update
 
 # Install PHP
-sudo apt-get install -y php5-cli php5-fpm php5-mysql php5-pgsql php5-sqlite php5-curl php5-gd php5-gmp php5-mcrypt php5-xdebug php5-memcached php5-imagick php5-intl
+sudo apt-get install --force-yes -y php5-cli php5-fpm php5-mysql php5-pgsql php5-sqlite php5-curl php5-gd php5-gmp php5-mcrypt php5-xdebug php5-memcached php5-imagick php5-intl
+
+# Set PHP FPM to listen on TCP instead of Socket
+sudo sed -i "s/listen =.*/listen = 127.0.0.1:9000/" /etc/php5/fpm/pool.d/www.conf
+
+# Set PHP FPM allowed clients IP address
+sudo sed -i "s/;listen.allowed_clients/listen.allowed_clients/" /etc/php5/fpm/pool.d/www.conf
 
 
 # PHP Error Reporting Config
@@ -217,7 +224,7 @@ server {
     location ~ ^/(index|app|app_dev|config)\.php(/|$) {
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
         # With php5-fpm:
-        fastcgi_pass unix:/var/run/php5-fpm.sock;
+        fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
         fastcgi_param LARA_ENV local; # Environment variable for Laravel
         include fastcgi_params;
