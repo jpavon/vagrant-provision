@@ -11,7 +11,7 @@ Vagrant.configure("2") do |config|
     # Synced folder
     config.vm.synced_folder ".", "/vagrant",
         id: "core",
-        :mount_options => ["dmode=777","fmode=666"]
+        :mount_options => ["dmode=777", "fmode=666"]
 
 
     # Optionally customize amount of RAM allocated to the VM

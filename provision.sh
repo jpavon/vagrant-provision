@@ -2,12 +2,21 @@
 
 # Config
 ENVIRONMENT="development" # "development" or "production"
-WEBSERVER="nginx" # "apache" or "nginx"
 SERVERNAME="192.168.33.10.xip.io"
 DOCUMENTROOT="/vagrant/test"
 DOCUMENTPUBLICROOT="${DOCUMENTROOT}/public"
 MYSQLPASSWORD="123456"
 USER="vagrant"
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -25,6 +34,15 @@ sudo apt-get update
 
 # Install base packages
 sudo apt-get install -y unzip git-core ack-grep vim tmux curl wget build-essential python-software-properties
+
+
+
+
+
+
+
+
+
 
 
 
@@ -79,80 +97,6 @@ sudo service php5-fpm restart
 
 
 
-if [ $WEBSERVER == "apache" ]; then
-
-echo ">>> Installing Apache Server"
-
-# Add repo for latest FULL stable Apache
-# (Required to remove conflicts with PHP PPA due to partial Apache upgrade within it)
-sudo add-apt-repository -y ppa:ondrej/apache2
-
-# Update Again
-sudo apt-get update
-
-# Install Apache
-sudo apt-get install -y apache2-mpm-event libapache2-mod-fastcgi
-
-echo ">>> Configuring Apache"
-
-# Apache Config
-sudo a2enmod actions autoindex deflate expires filter headers include mime rewrite setenvif
-
-cat > /etc/apache2/sites-available/${SERVERNAME}.conf << EOF
-<VirtualHost *:80>
-    ServerAdmin webmaster@localhost
-    ServerName $SERVERNAME
-
-    DocumentRoot $DOCUMENTPUBLICROOT
-
-    <Directory $DOCUMENTPUBLICROOT>
-        Options -Indexes +FollowSymLinks +MultiViews
-        AllowOverride All
-        Order allow,deny
-        Allow from all
-        Require all granted
-    </Directory>
-
-    ErrorLog \${APACHE_LOG_DIR}/$SERVERNAME-error.log
-
-    # Possible values include: debug, info, notice, warn, error, crit,
-    # alert, emerg.
-    LogLevel warn
-
-    CustomLog \${APACHE_LOG_DIR}/$SERVERNAME-access.log combined
-
-
-</VirtualHost>
-EOF
-
-if [ ! -d $DOCUMENTPUBLICROOT ]; then
-    sudo mkdir -p $DOCUMENTPUBLICROOT
-fi
-
-cd /etc/apache2/sites-available/ && a2ensite ${SERVERNAME}.conf
-service apache2 reload
-
-
-# PHP Config for Apache
-cat > /etc/apache2/conf-available/php5-fpm.conf << EOF
-<IfModule mod_fastcgi.c>
-    AddHandler php5-fcgi .php
-    Action php5-fcgi /php5-fcgi
-    Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
-    FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -socket /var/run/php5-fpm.sock -pass-header Authorization
-    <Directory /usr/lib/cgi-bin>
-        Options ExecCGI FollowSymLinks
-        SetHandler fastcgi-script
-        Require all granted
-    </Directory>
-</IfModule>
-EOF
-
-sudo a2enconf php5-fpm
-
-sudo service apache2 restart
-
-fi # [ $WEBSERVER == "apache" ]
 
 
 
@@ -163,11 +107,6 @@ fi # [ $WEBSERVER == "apache" ]
 
 
 
-
-
-
-
-if [ $WEBSERVER == "nginx" ]; then
 
 echo ">>> Installing Nginx"
 
@@ -180,7 +119,6 @@ sudo apt-get update
 # Install the Rest
 sudo apt-get install -y nginx
 
-echo ">>> Configuring Nginx"
 
 # Configure Nginx
 sudo bash -c "cat > /etc/nginx/sites-available/$SERVERNAME" << EOF
@@ -261,7 +199,8 @@ sudo sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php5/fpm/php.ini
 sudo service php5-fpm restart
 sudo service nginx restart
 
-fi # [ $WEBSERVER == "nginx" ]
+
+
 
 
 
@@ -311,16 +250,20 @@ sudo apt-get install -y mysql-server
 
 
 
-
-
-
-
-
-
-
 echo ">>> Installing Memcached"
 
 sudo apt-get install -y memcached
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -334,6 +277,17 @@ echo ">>> Installing Composer"
 
 curl -sS https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -381,6 +335,15 @@ fi # [ $ENVIRONMENT == "production" ]
 
 
 
+
+
+
+
+
+
+
+
+
 echo ">>> Installing Oh-My-Zsh"
 
 # https://gist.github.com/tsabat/1498393
@@ -408,13 +371,17 @@ sudo chsh $USER -s $(which zsh);
 
 
 
+
+
+
+
+
+
+
+
 if [ $ENVIRONMENT == "development" ]; then
 
 echo ">>> Installing Mailcatcher"
-
-# Test if Apache is installed
-apache2 -v > /dev/null 2>&1
-APACHE_IS_INSTALLED=$?
 
 # Installing dependency
 sudo apt-get install -y libsqlite3-dev
@@ -441,10 +408,6 @@ sudo bash -c 'echo "sendmail_path = /usr/bin/env $(which catchmail)" >> /etc/php
 sudo php5enmod mailcatcher
 sudo service php5-fpm restart
 
-
-if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
-    sudo service apache2 restart
-fi
 
 # Start it now
 /usr/bin/env $(which mailcatcher) --ip=0.0.0.0

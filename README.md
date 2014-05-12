@@ -3,7 +3,7 @@
 Includes:
 
     - PHP
-    - Apache or Nginx
+    - Nginx
     - MySQL
     - Memcached
     - Composer
