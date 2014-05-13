@@ -132,8 +132,7 @@ events {
     worker_connections 8000;
 }
 
-access_log /var/log/nginx/${SERVERNAME}-access.log;
-error_log  /var/log/nginx/${SERVERNAME}-error.log error;
+error_log  /var/log/nginx/error.log warn;
 pid        /var/run/nginx.pid;
 
 http {
@@ -148,7 +147,7 @@ http {
                     '\$status \$body_bytes_sent "\$http_referer" '
                     '"\$http_user_agent" "\$http_x_forwarded_for"';
 
-    access_log logs/access.log main;
+    access_log /var/log/nginx/access.log main;
 
     keepalive_timeout 20;
 
@@ -342,11 +341,6 @@ EOF
 # Create public directory
 if [ ! -d $DOCUMENTPUBLICROOT ]; then
     sudo mkdir -p $DOCUMENTPUBLICROOT
-fi
-
-# Create logs directory
-if [ ! -d $DOCUMENTPUBLICROOT ]; then
-    sudo mkdir -p /usr/share/nginx/logs
 fi
 
 # Enabling virtual hosts
