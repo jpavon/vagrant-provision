@@ -518,7 +518,7 @@ sudo su - $ENV_USER -c 'wget --no-check-certificate http://install.ohmyz.sh -O -
 sudo sed -i 's=:/bin:=:/bin:/sbin:/usr/sbin:=' /home/${ENV_USER}/.zshrc
 
 # Change $ENV_USER user's default shell
-sudo chsh $ENV_ENV_USER -s $(which zsh);
+sudo chsh $ENV_USER -s $(which zsh);
 
 
 
