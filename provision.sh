@@ -6,7 +6,7 @@ SERVERNAME="192.168.33.10.xip.io"
 DOCUMENTROOT="/vagrant/test"
 DOCUMENTPUBLICROOT="${DOCUMENTROOT}/public"
 MYSQLPASSWORD="123456"
-USER="vagrant"
+ENV_USER="vagrant"
 
 
 
@@ -316,9 +316,7 @@ server {
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
-    if (!-d \$request_filename) {
-        rewrite ^/(.+)/$ /\$1 permanent;
-    }
+    rewrite ^/(.+)/$ /\$1 permanent;
 
     location = /favicon.ico { log_not_found off; access_log off; }
     location = /robots.txt  { access_log off; log_not_found off; }
@@ -342,9 +340,10 @@ server {
 }
 EOF
 
-# Create public directory
+# Create public directory / index file
 if [ ! -d $DOCUMENTPUBLICROOT ]; then
     sudo mkdir -p $DOCUMENTPUBLICROOT
+    sudo bash -c 'echo "Works!" >> ${DOCUMENTPUBLICROOT}/index.html'
 fi
 
 # Enabling virtual hosts
@@ -513,13 +512,13 @@ echo ">>> Installing Oh-My-Zsh"
 sudo apt-get install -y zsh
 
 # Install oh-my-zsh
-sudo su - $USER -c 'wget --no-check-certificate http://install.ohmyz.sh -O - | sh'
+sudo su - $ENV_USER -c 'wget --no-check-certificate http://install.ohmyz.sh -O - | sh'
 
 # Add /sbin to PATH
-sudo sed -i 's=:/bin:=:/bin:/sbin:/usr/sbin:=' /home/${USER}/.zshrc
+sudo sed -i 's=:/bin:=:/bin:/sbin:/usr/sbin:=' /home/${ENV_USER}/.zshrc
 
-# Change $USER user's default shell
-sudo chsh $USER -s $(which zsh);
+# Change $ENV_USER user's default shell
+sudo chsh $ENV_ENV_USER -s $(which zsh);
 
 
 
@@ -560,8 +559,7 @@ gem install --no-rdoc --no-ri mailcatcher
 
 
 # Make it start on boot
-sudo bash -c 'echo "@reboot root $(which mailcatcher) --ip=0.0.0.0" >> /etc/crontab'
-sudo update-rc.d cron defaults
+sudo bash -c 'echo "@reboot root $(which mailcatcher) --ip=0.0.0.0" >> /etc/cron.d/$ENV_USER'
 
 
 # Make php use it to send mail
@@ -574,8 +572,8 @@ sudo service php5-fpm restart
 /usr/bin/env $(which mailcatcher) --ip=0.0.0.0
 
 # Add aliases
-if [[ -f "/home/${USER}/.zshrc" ]]; then
-    sudo bash -c 'echo "alias mailcatcher=\"mailcatcher --ip=0.0.0.0\"" >> /home/${USER}/.zshrc'
+if [[ -f "/home/${ENV_USER}/.zshrc" ]]; then
+    sudo bash -c 'echo "alias mailcatcher=\"mailcatcher --ip=0.0.0.0\"" >> /home/${ENV_USER}/.zshrc'
 fi
 
 fi # [ $ENVIRONMENT == "development" ]
