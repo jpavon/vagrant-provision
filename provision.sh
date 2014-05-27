@@ -343,7 +343,7 @@ EOF
 # Create public directory / index file
 if [ ! -d $DOCUMENTPUBLICROOT ]; then
     sudo mkdir -p $DOCUMENTPUBLICROOT
-    sudo bash -c 'echo "Works!" >> ${DOCUMENTPUBLICROOT}/index.html'
+    sudo bash -c 'echo "Works!" >> '"$DOCUMENTPUBLICROOT"'/index.php'
 fi
 
 # Enabling virtual hosts
@@ -559,7 +559,7 @@ gem install --no-rdoc --no-ri mailcatcher
 
 
 # Make it start on boot
-sudo bash -c 'echo "@reboot root $(which mailcatcher) --ip=0.0.0.0" >> /etc/cron.d/$ENV_USER'
+sudo bash -c 'echo "@reboot root $(which mailcatcher) --ip=0.0.0.0" >> /etc/cron.d/'"$ENV_USER"''
 
 
 # Make php use it to send mail
@@ -573,7 +573,7 @@ sudo service php5-fpm restart
 
 # Add aliases
 if [[ -f "/home/${ENV_USER}/.zshrc" ]]; then
-    sudo bash -c 'echo "alias mailcatcher=\"mailcatcher --ip=0.0.0.0\"" >> /home/${ENV_USER}/.zshrc'
+    sudo bash -c 'echo "alias mailcatcher=\"mailcatcher --ip=0.0.0.0\"" >> /home/'"$ENV_USER"'/.zshrc'
 fi
 
 fi # [ $ENVIRONMENT == "development" ]
