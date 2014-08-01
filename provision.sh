@@ -87,6 +87,10 @@ if [ $ENVIRONMENT == "production" ]; then
     sudo sed -i "s/html_errors = .*/html_errors = Off/" /etc/php5/fpm/php.ini
 fi
 
+# Timezone
+sudo sed -i "s/;date.timezone =.*/date.timezone = UTC/" /etc/php5/fpm/php.ini
+sudo sed -i "s/;date.timezone =.*/date.timezone = UTC/" /etc/php5/cli/php.ini
+
 sudo service php5-fpm restart
 
 
