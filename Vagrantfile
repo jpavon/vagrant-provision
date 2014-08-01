@@ -1,6 +1,6 @@
 Vagrant.configure("2") do |config|
 
-    # Set server to Ubuntu 12.04
+    # Set server to Ubuntu 14.04
     config.vm.box = "ubuntu/trusty64"
 
 
@@ -14,7 +14,7 @@ Vagrant.configure("2") do |config|
         :mount_options => ["dmode=777", "fmode=666"]
 
 
-    # Optionally customize amount of RAM allocated to the VM
+    # Customize amount of RAM allocated to the VM
     config.vm.provider :virtualbox do |vb|
         vb.customize ["modifyvm", :id, "--memory", "512"]
     end
