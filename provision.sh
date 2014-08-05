@@ -33,7 +33,7 @@ echo ">>> Installing Base Packages"
 sudo apt-get update
 
 # Install base packages
-sudo apt-get install -y unzip git-core ack-grep vim tmux curl wget build-essential python-software-properties
+sudo apt-get install -qq unzip git-core ack-grep vim tmux curl wget build-essential python-software-properties
 
 
 
@@ -62,7 +62,7 @@ sudo apt-key update
 sudo apt-get update
 
 # Install PHP
-sudo apt-get install --force-yes -y php5-cli php5-fpm php5-mysql php5-pgsql php5-sqlite php5-curl php5-gd php5-gmp php5-mcrypt php5-xdebug php5-memcached php5-imagick php5-intl
+sudo apt-get install -qq php5-cli php5-fpm php5-mysql php5-pgsql php5-sqlite php5-curl php5-gd php5-gmp php5-mcrypt php5-xdebug php5-memcached php5-imagick php5-intl
 
 # Set PHP FPM to listen on TCP instead of Socket
 sudo sed -i "s/listen =.*/listen = 127.0.0.1:9000/" /etc/php5/fpm/pool.d/www.conf
@@ -121,7 +121,7 @@ sudo add-apt-repository -y ppa:nginx/stable
 sudo apt-get update
 
 # Install the Rest
-sudo apt-get install -y nginx
+sudo apt-get install -qq nginx
 
 
 # Configure nginx.conf
@@ -393,7 +393,7 @@ sudo debconf-set-selections <<< "mysql-server mysql-server/root_password passwor
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $MYSQLPASSWORD"
 
 # Install MySQL Server
-sudo apt-get install -y mysql-server
+sudo apt-get install -qq mysql-server
 
 
 
@@ -416,7 +416,7 @@ sudo apt-get install -y mysql-server
 
 echo ">>> Installing Memcached"
 
-sudo apt-get install -y memcached
+sudo apt-get install -qq memcached
 
 
 
@@ -513,7 +513,7 @@ echo ">>> Installing Oh-My-Zsh"
 # https://gist.github.com/tsabat/1498393
 
 # Install zsh
-sudo apt-get install -y zsh
+sudo apt-get install -qq zsh
 
 # Install oh-my-zsh
 sudo su - $ENV_USER -c 'wget --no-check-certificate http://install.ohmyz.sh -O - | sh'
@@ -548,29 +548,21 @@ if [ $ENVIRONMENT == "development" ]; then
 echo ">>> Installing Mailcatcher"
 
 # Installing dependency
-sudo apt-get install -y libsqlite3-dev
-
+sudo apt-get install -qq libsqlite3-dev ruby1.9.1-dev
 
 # Gem check
-if ! gem -v > /dev/null 2>&1; then sudo aptitude install -y libgemplugin-ruby; fi
+if ! gem -v > /dev/null 2>&1; then sudo aptitude install -qq libgemplugin-ruby; fi
 
-# Install ruby
-sudo apt-get install ruby1.9.1-dev
-
-
-# Install
+# Install mailcatcher
 gem install --no-rdoc --no-ri mailcatcher
-
 
 # Make it start on boot
 sudo bash -c 'echo "@reboot root $(which mailcatcher) --ip=0.0.0.0" >> /etc/cron.d/'"$ENV_USER"''
-
 
 # Make php use it to send mail
 sudo bash -c 'echo "sendmail_path = /usr/bin/env $(which catchmail)" >> /etc/php5/mods-available/mailcatcher.ini'
 sudo php5enmod mailcatcher
 sudo service php5-fpm restart
-
 
 # Start it now
 /usr/bin/env $(which mailcatcher) --ip=0.0.0.0
