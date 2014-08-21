@@ -56,6 +56,7 @@ sudo apt-get install -qq unzip git-core ack-grep vim tmux curl wget build-essent
 
 echo ">>> Installing PHP"
 
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C
 sudo add-apt-repository -y ppa:ondrej/php5
 
 sudo apt-key update
@@ -69,7 +70,6 @@ sudo sed -i "s/listen =.*/listen = 127.0.0.1:9000/" /etc/php5/fpm/pool.d/www.con
 
 # Set PHP FPM allowed clients IP address
 sudo sed -i "s/;listen.allowed_clients/listen.allowed_clients/" /etc/php5/fpm/pool.d/www.conf
-
 
 # PHP Error Reporting Config
 sudo sed -i "s/log_errors = .*/log_errors = On/" /etc/php5/fpm/php.ini
