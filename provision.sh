@@ -57,13 +57,13 @@ sudo apt-get install -qq unzip git-core ack-grep vim tmux curl wget build-essent
 echo ">>> Installing PHP"
 
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C
-sudo add-apt-repository -y ppa:ondrej/php5
+sudo add-apt-repository -y ppa:ondrej/php5-5.6
 
 sudo apt-key update
 sudo apt-get update
 
 # Install PHP
-sudo apt-get install -qq php5-cli php5-fpm php5-mysql php5-pgsql php5-sqlite php5-curl php5-gd php5-gmp php5-mcrypt php5-xdebug php5-memcached php5-imagick php5-intl
+sudo apt-get install -qq php5-cli php5-fpm php5-mysql php5-pgsql php5-sqlite php5-curl php5-gd php5-gmp php5-mcrypt php5-memcached php5-imagick php5-intl
 
 # Set PHP FPM to listen on TCP instead of Socket
 sudo sed -i "s/listen =.*/listen = 127.0.0.1:9000/" /etc/php5/fpm/pool.d/www.conf
