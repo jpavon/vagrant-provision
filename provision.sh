@@ -332,7 +332,7 @@ server {
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
         fastcgi_param LARA_ENV local;
-        include fastcgi_params;
+        include fastcgi.conf;
     }
 
     location ~* (?:^|/)\. {
