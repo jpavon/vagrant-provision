@@ -320,7 +320,10 @@ server {
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
-    rewrite ^/(.+)/$ /\$1 permanent;
+    if (!-d \$request_filename) {
+        rewrite ^/(.+)/$ /\$1 permanent;
+    }
+
 
     location = /favicon.ico { log_not_found off; access_log off; }
     location = /robots.txt  { access_log off; log_not_found off; }
@@ -331,7 +334,7 @@ server {
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
-        fastcgi_param LARA_ENV local;
+        fastcgi_param APP_ENV local;
         include fastcgi.conf;
     }
 
