@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # Config
+SSL=true
 ENVIRONMENT="development" # "development" or "production"
 SERVERNAME="192.168.33.10.xip.io"
 DOCUMENTROOT="/vagrant/test"
@@ -114,6 +115,61 @@ sudo service php5-fpm restart
 
 echo ">>> Installing Nginx"
 
+SSL_CONF=""
+SSL_SERVER_BLOCK=""
+NO_SSL_SERVER_BLOCK=""
+
+if [ $SSL == true ]; then
+
+read -r -d '' SSL_CONF <<EOF
+    ssl    on;
+    ssl_protocols              TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers                ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA;
+    ssl_prefer_server_ciphers  on;
+
+
+    ssl_session_cache    shared:SSL:10m;
+    ssl_session_timeout  24h;
+
+    keepalive_timeout 300;
+
+    ssl_certificate      /etc/nginx/ssl.crt;
+    ssl_certificate_key  /etc/nginx/ssl.key;
+EOF
+read -r -d '' SSL_SERVER_BLOCK <<EOF
+server {
+    listen 80;
+    ssl off;
+    server_name ${SERVERNAME} www.${SERVERNAME};
+    return 301 https://www.${SERVERNAME}\$request_uri;
+}
+server {
+    listen 443 ssl;
+    server_name www.${SERVERNAME};
+    return 301 \$scheme://${SERVERNAME}\$request_uri;
+}
+server {
+    listen 443 ssl;
+EOF
+
+fi #if [ $SSL == true ];
+
+if [ $SSL == false ]; then
+
+read -r -d '' NO_SSL_SERVER_BLOCK <<EOF
+server {
+    listen 80;
+    server_name www.${SERVERNAME};
+    return 301 \$scheme://${SERVERNAME}\$request_uri;
+}
+server {
+    listen 80;
+EOF
+
+fi #if [ $SSL == false ];
+
+
+
 # Add repo for latest stable nginx
 sudo add-apt-repository -y ppa:nginx/stable
 
@@ -153,8 +209,6 @@ http {
 
     access_log /var/log/nginx/access.log main;
 
-    keepalive_timeout 20;
-
     sendfile        on;
 
     tcp_nopush      on;
@@ -183,12 +237,8 @@ http {
         text/plain
         text/x-component;
 
-    ssl_protocols              SSLv3 TLSv1 TLSv1.1 TLSv1.2;
-    ssl_ciphers                ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:ECDHE-RSA-RC4-SHA:ECDHE-ECDSA-RC4-SHA:AES128:AES256:RC4-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!3DES:!MD5:!PSK;
-    ssl_prefer_server_ciphers  on;
 
-    ssl_session_cache    shared:SSL:10m;
-    ssl_session_timeout  10m;
+    $SSL_CONF
 
     include sites-enabled/*;
 }
@@ -199,38 +249,48 @@ EOF
 # Configure myme.types
 sudo bash -c "cat > /etc/nginx/mime.types" << EOF
 types {
+    # Data interchange
+
+    application/atom+xml                  atom;
+    application/json                      json map topojson;
+    application/ld+json                   jsonld;
+    application/rss+xml                   rss;
+    application/vnd.geo+json              geojson;
+    application/xml                       rdf xml;
+
+
+    # JavaScript
+
+    # Normalize to standard type.
+    # https://tools.ietf.org/html/rfc4329#section-7.2
+    application/javascript                js;
+
+
+    # Manifest files
+
+    application/x-web-app-manifest+json   webapp;
+    text/cache-manifest                   appcache;
+
+
+    # Media files
+
     audio/midi                            mid midi kar;
     audio/mp4                             aac f4a f4b m4a;
     audio/mpeg                            mp3;
-    audio/ogg                             oga ogg;
+    audio/ogg                             oga ogg opus;
     audio/x-realaudio                     ra;
     audio/x-wav                           wav;
-
     image/bmp                             bmp;
     image/gif                             gif;
     image/jpeg                            jpeg jpg;
     image/png                             png;
+    image/svg+xml                         svg svgz;
     image/tiff                            tif tiff;
     image/vnd.wap.wbmp                    wbmp;
     image/webp                            webp;
-    image/x-icon                          ico cur;
     image/x-jng                           jng;
-
-    application/javascript                js;
-    application/json                      json;
-
-    application/x-web-app-manifest+json   webapp;
-    text/cache-manifest                   manifest appcache;
-
-    application/msword                                                         doc;
-    application/vnd.ms-excel                                                   xls;
-    application/vnd.ms-powerpoint                                              ppt;
-    application/vnd.openxmlformats-officedocument.wordprocessingml.document    docx;
-    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet          xlsx;
-    application/vnd.openxmlformats-officedocument.presentationml.presentation  pptx;
-
     video/3gpp                            3gpp 3gp;
-    video/mp4                             mp4 m4v f4v f4p;
+    video/mp4                             f4v f4p m4v mp4;
     video/mpeg                            mpeg mpg;
     video/ogg                             ogv;
     video/quicktime                       mov;
@@ -241,31 +301,61 @@ types {
     video/x-ms-wmv                        wmv;
     video/x-msvideo                       avi;
 
-    application/xml                       atom rdf rss xml;
+    # Serving `.ico` image files with a different media type
+    # prevents Internet Explorer from displaying then as images:
+    # https://github.com/h5bp/html5-boilerplate/commit/37b5fec090d00f38de64b591bcddcb205aadf8ee
+
+    image/x-icon                          cur ico;
+
+
+    # Microsoft Office
+
+    application/msword                                                         doc;
+    application/vnd.ms-excel                                                   xls;
+    application/vnd.ms-powerpoint                                              ppt;
+    application/vnd.openxmlformats-officedocument.wordprocessingml.document    docx;
+    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet          xlsx;
+    application/vnd.openxmlformats-officedocument.presentationml.presentation  pptx;
+
+
+    # Web fonts
 
     application/font-woff                 woff;
+    application/font-woff2                woff2;
     application/vnd.ms-fontobject         eot;
+
+    # Browsers usually ignore the font media types and simply sniff
+    # the bytes to figure out the font type.
+    # https://mimesniff.spec.whatwg.org/#matching-a-font-type-pattern
+    #
+    # However, Blink and WebKit based browsers will show a warning
+    # in the console if the following font types are served with any
+    # other media types.
+
     application/x-font-ttf                ttc ttf;
     font/opentype                         otf;
-    image/svg+xml                         svg svgz;
+
+
+    # Other
 
     application/java-archive              jar war ear;
     application/mac-binhex40              hqx;
+    application/octet-stream              bin deb dll dmg exe img iso msi msm msp safariextz;
     application/pdf                       pdf;
     application/postscript                ps eps ai;
     application/rtf                       rtf;
-    application/vnd.wap.wmlc              wmlc;
-    application/xhtml+xml                 xhtml;
     application/vnd.google-earth.kml+xml  kml;
     application/vnd.google-earth.kmz      kmz;
+    application/vnd.wap.wmlc              wmlc;
     application/x-7z-compressed           7z;
+    application/x-bb-appworld             bbaw;
+    application/x-bittorrent              torrent;
     application/x-chrome-extension        crx;
-    application/x-opera-extension         oex;
-    application/x-xpinstall               xpi;
     application/x-cocoa                   cco;
     application/x-java-archive-diff       jardiff;
     application/x-java-jnlp-file          jnlp;
     application/x-makeself                run;
+    application/x-opera-extension         oex;
     application/x-perl                    pl pm;
     application/x-pilot                   prc pdb;
     application/x-rar-compressed          rar;
@@ -275,25 +365,20 @@ types {
     application/x-stuffit                 sit;
     application/x-tcl                     tcl tk;
     application/x-x509-ca-cert            der pem crt;
-    application/x-bittorrent              torrent;
+    application/x-xpinstall               xpi;
+    application/xhtml+xml                 xhtml;
+    application/xslt+xml                  xsl;
     application/zip                       zip;
-
-    application/octet-stream              bin exe dll;
-    application/octet-stream              deb;
-    application/octet-stream              dmg;
-    application/octet-stream              iso img;
-    application/octet-stream              msi msp msm;
-    application/octet-stream              safariextz;
-
     text/css                              css;
     text/html                             html htm shtml;
     text/mathml                           mml;
     text/plain                            txt;
+    text/vcard                            vcard vcf;
+    text/vnd.rim.location.xloc            xloc;
     text/vnd.sun.j2me.app-descriptor      jad;
     text/vnd.wap.wml                      wml;
     text/vtt                              vtt;
     text/x-component                      htc;
-    text/x-vcard                          vcf;
 }
 EOF
 
@@ -301,13 +386,8 @@ EOF
 
 # Configure Nginx site-available
 sudo bash -c "cat > /etc/nginx/sites-available/$SERVERNAME" << EOF
-server {
-    listen 80;
-    server_name www.${SERVERNAME};
-    return 301 \$scheme://${SERVERNAME}\$request_uri;
-}
-server {
-    listen 80;
+$SSL_SERVER_BLOCK
+$NO_SSL_SERVER_BLOCK
 
     root $DOCUMENTPUBLICROOT;
     index index.html index.htm index.php;
