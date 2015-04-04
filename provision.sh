@@ -135,21 +135,28 @@ read -r -d '' SSL_CONF <<EOF
 
     ssl_certificate      /etc/nginx/ssl.crt;
     ssl_certificate_key  /etc/nginx/ssl.key;
+
+
+    spdy_keepalive_timeout 300;
+    spdy_headers_comp 6;
 EOF
 read -r -d '' SSL_SERVER_BLOCK <<EOF
 server {
+    listen [::]:80;
     listen 80;
     ssl off;
     server_name ${SERVERNAME} www.${SERVERNAME};
     return 301 https://www.${SERVERNAME}\$request_uri;
 }
 server {
-    listen 443 ssl;
+    listen [::]:443 ssl spdy;
+    listen 443 ssl spdy;
     server_name www.${SERVERNAME};
     return 301 \$scheme://${SERVERNAME}\$request_uri;
 }
 server {
-    listen 443 ssl;
+    listen [::]:443 ssl spdy;
+    listen 443 ssl spdy;
 EOF
 
 fi #if [ $SSL == true ];
@@ -158,11 +165,13 @@ if [ $SSL == false ]; then
 
 read -r -d '' NO_SSL_SERVER_BLOCK <<EOF
 server {
+    listen [::]:80;
     listen 80;
     server_name www.${SERVERNAME};
     return 301 \$scheme://${SERVERNAME}\$request_uri;
 }
 server {
+    listen [::]:80;
     listen 80;
 EOF
 
