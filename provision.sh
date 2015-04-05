@@ -681,3 +681,36 @@ if [[ -f "/home/${ENV_USER}/.zshrc" ]]; then
 fi
 
 fi # [ $ENVIRONMENT == "development" ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+echo ">>> Installing UFW"
+
+# sudo ufw reset
+
+sudo apt-get install ufw
+
+sudo ufw allow 22/tcp    # ssh
+sudo ufw allow 80/tcp    # http
+sudo ufw allow 443/tcp   # https
+sudo ufw allow 3306/tcp  # mysql
+sudo ufw allow 11211/tcp # memcached
+
+yes y | sudo ufw enable
