@@ -714,3 +714,33 @@ sudo ufw allow 3306/tcp  # mysql
 sudo ufw allow 11211/tcp # memcached
 
 yes y | sudo ufw enable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+echo ">>> Installing Swap file"
+
+sudo fallocate -l 1G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo "/swapfile   none    swap    sw    0   0" | sudo tee -a /etc/fstab
+echo "vm.swappiness=10" | sudo tee -a /etc/sysctl.conf
+echo "vm.vfs_cache_pressure=50" | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
